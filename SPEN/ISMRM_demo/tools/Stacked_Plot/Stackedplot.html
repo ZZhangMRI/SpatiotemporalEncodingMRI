@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Stacked Plot Help</title>
+<meta http-equiv="Content-Language" content="en-us" />
+<style type="text/css">
+@import url('../../MRIS%20master/MRIS.help/figures%26styles/matlabdocstyle.css');
+</style>
+</head>
+
+<body><a name="top_of_page"></a>
+<h2 class="title">stackedplot</h2>
+<p>STACKEDPLOT produces a 3D-like view of a 2D stacked set of spectra. </p>
+
+<h3 class="title">Contents</h3>
+
+<ul>
+	<li><a href="#syntax">Syntax</a></li>
+	<li><a href="#description">Description</a></li>
+	<li><a href="#examplesNotes">Examples</a></li>
+	<li><a href="#seealso">See Also</a></li>
+</ul>
+
+<h3 class="title">Syntax<a name="syntax"></a></h3>
+<pre>
+figh = stackedplot(z,style,spacing,labels,varargin) 
+</pre>
+<h3 class="title">Description<a name="description"></a></h3>
+
+<p>Stacked plots are commonly seen in NMR spectroscopy. They often illustrate 
+the evolution of spectra with time or some other parameter. There are several 
+(somewhat equivalent) methods to produce such plots in Matlab. This function 
+serves as a common interface to these various methods. Certainly some methods 
+may be evoked directly, e.g. <em>mesh</em>, but some others are not as obvious, 
+e.g. <em>plot3</em>. In addition a method (style 1) has been added that produces the 
+traditional stacked plot format.</p>
+<p>The purpose of this function is to educate through sample code and to provide
+<br />
+the user access to these additional choices. Select the method you like best.</p>
+<ul>
+	<li>&quot;z&quot; is a two dimensional array to plot.<br/>
+	&nbsp;&nbsp;&nbsp;
+	First dimension is the spectroscopic axis.<br/>
+	&nbsp;&nbsp;&nbsp;
+	Second dimension has the various spectra or plots (e.g. along time).</li>
+	<li>&quot;style&quot; (optional) a number or string that selects the method and style 
+	for the stacked plot.<ul>
+		<li>&quot;1&quot; or &quot;s&quot; (default) performs a traditional stacked plot.<br/>
+		This is not a 3D plot. The view cannot be rotated and there is no control over z tick labels.</li>
+		<li>"2" or "m" performs a surface mesh plot (see <em>mesh</em>).<br/>
+		This is a 3D plot and the camera view may be rotated.</li>
+		<li>"3" or "mc" performs a surface mesh plot with mesh lines along dim 1 (see 
+		<em>mesh</em>).<br/>
+		This is a 3D plot and the camera view may be rotated.</li>
+		<li>"4" or "p" uses <em>plot3</em>.<br/>
+				This is a 3D line plot and the camera view may be rotated.</li>
+		<li>"5" or "i" uses <em>imagesc</em>.<br/>
+		Technically this is not a stacked plot, but is provided as an 
+		alternative view that may be useful.
+		This style simply plots the data as an image as looking from above.<br />
+				Vertical axis is the second dimension for the data.
+</li>
+		
+	</ul>
+	</li>
+	
+	<li>&nbsp;"labels" controls appearance of tick labels on the axes. If it is a single element then it must be one of the following:<ul>
+		<li>&nbsp;{0, 'none'} - axis tick labels are removed (default).</li>
+		<li>&nbsp;{1, 'x'} - only x-axis (dim 1) tick labels are kept.
+</li>
+		<li>&nbsp;{2, 'y'} - only y-axis (dim 2) tick labels are kept.
+</li>
+		<li>&nbsp;{3, 'xy'} - only x & y-axis tick labels are kept.
+</li>
+		<li>&nbsp;{4, 'all'} - all axis tick labels are kept.
+</li>
+		<li>if "labels" is numeric and has more than one element [2,4,or 6] then</li>
+		<li>&nbsp; if a 2 element column vector, only x-axis tick labels are created.
+		</li>
+		<li>&nbsp;if a 2 element row vector, only y-axis tick labels are created.
+		</li>
+		<li>&nbsp;if a 4 element vector, then x & y tick labels are created.
+		</li>
+		<li>&nbsp;if a 6 element vector, then x, y, & z tick labels are created.</li>
+		<li>Each axis "labels" has 2 elements [min, max].<br />
+		To reverse the order of the labels specify in reverse order as [max, 
+		min].</li>
+	</ul>
+	</li>
+	
+	<li>&quot;spacing&quot; (optional) is a positive integer specifying the spacing along 
+	dim 2.<br/>&nbsp;&nbsp;&nbsp;
+		e.g. 4 specifies that every fourth point is plotted (default=1).<br/>&nbsp;&nbsp;&nbsp;	
+		It is useful to reduce the density of points along the second dimension.<br/>&nbsp;&nbsp;&nbsp;
+		This is especially true for styles 1,3 and 4.</li>
+	<li>&quot;style&quot; (optional) a number or string that selects the method and style 
+	for the stacked plot.<ul>
+		<li>&quot;1&quot; or &quot;s&quot; (default) performs a traditional stacked plot.<br/>This is not a 3D plot. The view cannot be rotated and there is no control over z tick labels.</li>
+		<li>"2" or "m" performs a surface mesh plot (see mesh).<br/>This is a 3D plot and the camera view may be rotated.</li>
+		<li>"3" or "mc" performs a surface mesh plot with mesh lines along dim 1 (see mesh).<br/>This is a 3D plot and the camera view may be rotated.</li>
+		<li>"4" or "p" uses plot3.<br/>This is a 3D line plot and the camera view may be rotated.</li>
+		<li>"5" or "i" uses <em>imagesc</em>.<br/>Technically this is not a stacked plot, but is provided as an 
+		alternative view that may be useful.
+		This style simply plots the data as an image as looking from above.<br />Horizontal axis is the second dimension for the data.
+		</li>
+	</ul>
+	</li>
+	<li>"varargin" (optional) can be any number of arguments as needed that are passed along
+	to the plotting commands.<br />&nbsp;&nbsp;&nbsp; Thus this depends upon the plot sytle as follows:<ul>
+		<li>&nbsp;Style
+		1 - (offset, linespec, numyticks)<ul>
+			<li>1st arg is offset, which is specified as a fraction of the data range.<br />This value represents the total offset displacement along each axis.
+			<br />If a single element then value is repeated for both axes.<br />If two elements then [xoffset,yoffset] (default = [0.1,0.8]).</li>
+			<li>&nbsp;2nd arg is linespec, see Matlab help for "line" (default: 'b').
+			</li>
+			<li>&nbsp;3rd arg is numyticks (number of y ticks).<br />Remember to specify a y tick vector for &quot;labels&quot;.</li>
+		</ul>
+		</li>
+		<li>Style 2 - Any property that is valid for <em>mesh</em>, see Matlab help.</li>
+		<li>Style 3 - Any property that is valid for <em>mesh</em>, see Matlab help.</li>
+		<li>Style 4 - Any property or linespec that is valid for <em>plot3</em>, see Matlab help.</li>
+		<li>Style 5 - clims value, see Matlab help on <em>imagesc</em>.</li>
+	</ul>
+	</li>
+	<li>&nbsp;"figh" (optional) is the figure handle.</li>
+	
+</ul>
+<p>&nbsp;Plots are made on the current figure, if no figure exists then one is created.</p>
+<h3 class="title">Examples<a name="examplesNotes"></a></h3>
+<p>Stacked plots of in-vivo 31P NMR spectra collected during exercise and 
+recovery.</p>
+<p>stackedplot(z,1,10,[-11.1,20.2,-3,3],[0.1,1.2],3)<br />
+&nbsp;&nbsp;&nbsp;
+Style 1 (traditional) stacked plot of every tenth spectra with x&nbsp; &amp; y offsets of 0.1 &amp; 1.2, 
+and x &amp; y tick labels with 3 ytick labels.&nbsp;To change angle of view 
+change x &amp; y offsets.</p>
+<p><img alt="Style 1 Stacked Plot" src="style1.jpg" width="509" height="379" />&nbsp;</p>
+<p>stackedplot(z,2,10,[-11.1,20.2,-3,3])<br />
+&nbsp;&nbsp;&nbsp;
+Style 2 (mesh surface plot) stacked plot, every tenth spectra, with x&nbsp; &amp; y tick labels.<br />
+&nbsp;&nbsp;&nbsp; View can be rotated.&nbsp;&nbsp;</p>
+<p><img alt="Style 2 stacked plot" src="style2.jpg" width="370" height="319" />&nbsp;</p>
+<p>stackedplot(z,3,10,[-11.1,20.2]') <br />
+&nbsp;&nbsp;&nbsp;&nbsp;Style 3 (mesh surface plot with column mesh style) stacked plot, 
+every tenth spectra, with x  tick labels 
+(note column tick vector).<br />
+    &nbsp;&nbsp;&nbsp;
+    View is rotated. </p>
+<p><img alt="Style 3 stacked plot" src="style3.jpg" width="385" height="305" />&nbsp;</p>
+<p>stackedplot(z,4,15,[-3,3],&#39;r&#39;) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;Style 4 stacked plot (uses plot3), every 15th spectra, with y  tick labels 
+(note row tick vector).<br />
+    &nbsp;&nbsp;&nbsp;
+    View is rotated. &nbsp;</p>
+<p><img alt="Style 4 stacked plot" src="style4.jpg" width="423" height="336" /></p>
+<p>stackedplot(z,5) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;Style 5 stacked plot (uses imagesc).</p>
+<p><img alt="Style 5 stacked plot" src="style5.jpg" width="423" height="336" />&nbsp;</p>
+<h3 class="title">See Also<a name="seealso"></a></h3>
+<p>mesh, plot3, imagesc</p>
+
+<p class="pagenavlink"><a href="#top_of_page">Back to Top</a></p>
+<p class="copy">&copy; 2009 Mirtech, Inc. </p>
+  <!-- Last updated: March 14 2008--></body>
+
+</html>

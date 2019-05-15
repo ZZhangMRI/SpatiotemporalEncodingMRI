@@ -1,0 +1,296 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Geometric Decomposition Coil Compression</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-09-25"><meta name="DC.source" content="demo_GCC.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Geometric Decomposition Coil Compression</h1><!--introduction--><p>This is a demo oh the Geometric-decomposition Coil Compression (GCC) based on Zhang et. al MRM 2013;69(2):571-82. The demo shows how to use the compression and in addition it shows the use of alignment of the compression matrices. The example is on 2D data, but can also be applied on 3D as well. GCC removes correlations between channels along a fully sampled readout dimension. This allows for significant reduction in data, so parallel imaging and other multi-channel algorithms are much more computationally efficient.  This demo demonstrate effective compression from 32-&gt;5 virtual channels.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#3">SCC - Software coil compression</a></li><li><a href="#5">GCC - Geometric decomposition Coil Compression (with no alignment)</a></li><li><a href="#7">Geometric decomposition Coil Compression (with alignment)</a></li></ul></div><p>Set parameters:</p><pre class="codeinput">load <span class="string">brain_32ch.mat</span>
+
+<span class="comment">% number of compressed virtual coils</span>
+ncc = 5;
+dim = 2;
+ncalib = 24; <span class="comment">% use 24 calibration lines to compute compression</span>
+[sx,sy,Nc] = size(DATA);
+
+slwin = 5; <span class="comment">% sliding window length for GCC</span>
+
+dispm = [4,8]; <span class="comment">% diplay matrix settings</span>
+
+<span class="comment">% crop calibration data</span>
+calib = crop(DATA,[ncalib,sy,Nc]);
+</pre><p>Display coil images.</p><pre class="codeinput">im = ifft2c(DATA);
+
+figure, imshow3(abs(im),[],dispm);
+title(<span class="string">'magnitude of physical coil images'</span>);
+colormap((gray(256))); colorbar;
+
+figure, imshow3(angle(im),[],dispm);
+title(<span class="string">'phase of physical coil images'</span>);
+colormap(<span class="string">'default'</span>); colorbar;
+</pre><img vspace="5" hspace="5" src="demo_GCC_01.png" alt=""> <img vspace="5" hspace="5" src="demo_GCC_02.png" alt=""> <h2>SCC - Software coil compression<a name="3"></a></h2><p>Compress channels using a single compression matrix. Based on Huang et. al, MRM 2008;26:133-141</p><pre class="codeinput"><span class="comment">%[U,S,V] = svd(reshape(calib,ncalib*sx,Nc),'econ');</span>
+<span class="comment">%SCCDATA = reshape(DATA,sx*sy,Nc)*V;</span>
+<span class="comment">%SCCDATA = reshape(SCCDATA,sx,sy,Nc);</span>
+sccmtx = calcSCCMtx(calib);
+SCCDATA = CC(DATA,sccmtx);
+SCCim = ifft2c(SCCDATA);
+</pre><p>The compressed virtual coil domain shows that the data can be compressed to about 16 channels. However the error is quite large when compressing tfrom 32-&gt;5 channels.</p><p>Note that the colormap is non-linear to improve dynamic-range of the visualization.</p><pre class="codeinput">figure, imshow3(abs(SCCim),[],dispm);
+title(<span class="string">'magnitude of SCC compressed virtual coils'</span>);
+colormap(sqrt(gray(256))); colorbar;
+
+figure, imshow3(angle(SCCim),[],dispm);
+title(<span class="string">'phase of SCC compressed virtual coils'</span>);
+colormap(<span class="string">'default'</span>);
+colorbar;
+
+figure, imshow(sos(SCCim(:,:,ncc+1:end)),[]);
+colorbar;
+title(<span class="string">'SCC Compression error from 32-&gt;5 channels'</span>)
+</pre><img vspace="5" hspace="5" src="demo_GCC_03.png" alt=""> <img vspace="5" hspace="5" src="demo_GCC_04.png" alt=""> <img vspace="5" hspace="5" src="demo_GCC_05.png" alt=""> <h2>GCC - Geometric decomposition Coil Compression (with no alignment)<a name="5"></a></h2><p>This code computes GCC compression matrices from calibration data. The data is the transformed to the new compressed virtual coils basis.</p><pre class="codeinput">gccmtx = calcGCCMtx(calib,dim,slwin);
+
+<span class="comment">% compress the data</span>
+GCCDATA = CC(DATA,gccmtx, dim);
+
+<span class="comment">% compute coil image</span>
+GCCim = ifft2c(GCCDATA);
+</pre><p>The compressed virtual coil domain shows that the data can be represented effectively by 5 out of 32 channels. The error is much lower than in SCC. However the data is not smooth anymore in both magnitude and phase.</p><p>Note that the colormap is non-linear to improve dynamic-range of the visualization.</p><pre class="codeinput">figure, imshow3(abs(GCCim),[],dispm);
+title(<span class="string">'magnitude unaligned compressed virtual coils'</span>);
+colormap(sqrt(gray(256))); colorbar;
+
+figure, imshow3(angle(GCCim),[],dispm);
+title(<span class="string">'phase unaligned compressed virtual coils'</span>);
+colormap(<span class="string">'default'</span>);
+colorbar
+
+figure, imshow(sos(GCCim(:,:,ncc+1:end)),[]);
+colorbar;
+title(<span class="string">'GCC Compression error of 32-&gt;5 channels'</span>)
+</pre><img vspace="5" hspace="5" src="demo_GCC_06.png" alt=""> <img vspace="5" hspace="5" src="demo_GCC_07.png" alt=""> <img vspace="5" hspace="5" src="demo_GCC_08.png" alt=""> <h2>Geometric decomposition Coil Compression (with alignment)<a name="7"></a></h2><p>Here, we crop the compression matrices so they compress from 32-&gt;5 channels. We then align the matrices so they smoothly vary. This does not change the subpspace of the data -- only rotates the basis vectors.</p><p>Note that the colormap is non-linear to improve dynamic-range of the visualization.</p><pre class="codeinput"><span class="comment">% crop and align matrices</span>
+gccmtx_aligned = alignCCMtx(gccmtx(:,1:ncc,:));
+
+<span class="comment">% compress the data</span>
+CCDATA_aligned = CC(DATA,gccmtx_aligned, dim);
+
+<span class="comment">% compute coil image</span>
+CCim_aligned = ifft2c(CCDATA_aligned);
+</pre><p>The compressed virtual coil are now smooth in phase and magnitude</p><pre class="codeinput">figure, imshow3(abs(CCim_aligned),[],[1,ncc]);
+title(<span class="string">'magnitude aligned compressed virtual coils'</span>);
+colormap(sqrt(gray(256))); colorbar;
+
+figure, imshow3(angle(CCim_aligned),[],[1,ncc]);
+title(<span class="string">'phase aligned compressed virtual coils'</span>);
+colormap(<span class="string">'default'</span>);
+colorbar
+</pre><img vspace="5" hspace="5" src="demo_GCC_09.png" alt=""> <img vspace="5" hspace="5" src="demo_GCC_10.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Geometric Decomposition Coil Compression
+% This is a demo oh the Geometric-decomposition Coil Compression (GCC) based on  
+% Zhang et. al MRM 2013;69(2):571-82. The demo shows how to use the compression
+% and in addition it shows the use of alignment of the compression
+% matrices. The example is on 2D data, but can also be applied on 3D as
+% well. GCC removes correlations between channels along a fully sampled
+% readout dimension. This allows for significant reduction in data, so
+% parallel imaging and other multi-channel algorithms are much more
+% computationally efficient.  This demo demonstrate effective compression
+% from 32->5 virtual channels. 
+
+
+
+%% 
+% Set parameters:
+
+load brain_32ch.mat
+
+% number of compressed virtual coils
+ncc = 5;
+dim = 2;
+ncalib = 24; % use 24 calibration lines to compute compression
+[sx,sy,Nc] = size(DATA);
+
+slwin = 5; % sliding window length for GCC
+
+dispm = [4,8]; % diplay matrix settings
+
+% crop calibration data
+calib = crop(DATA,[ncalib,sy,Nc]);
+
+%%
+% Display coil images. 
+im = ifft2c(DATA);
+
+figure, imshow3(abs(im),[],dispm); 
+title('magnitude of physical coil images');
+colormap((gray(256))); colorbar;
+
+figure, imshow3(angle(im),[],dispm); 
+title('phase of physical coil images');
+colormap('default'); colorbar;
+
+
+%% SCC - Software coil compression
+% Compress channels using a single compression matrix. Based on Huang et.
+% al, MRM 2008;26:133-141
+
+%[U,S,V] = svd(reshape(calib,ncalib*sx,Nc),'econ');
+%SCCDATA = reshape(DATA,sx*sy,Nc)*V;
+%SCCDATA = reshape(SCCDATA,sx,sy,Nc);
+sccmtx = calcSCCMtx(calib);
+SCCDATA = CC(DATA,sccmtx);
+SCCim = ifft2c(SCCDATA);
+
+%% 
+% The compressed virtual coil domain shows that the data can be compressed
+% to about 16 channels.
+% However the error is quite large when compressing tfrom 32->5 channels. 
+% 
+% Note that the colormap is non-linear to improve dynamic-range of
+% the visualization. 
+
+figure, imshow3(abs(SCCim),[],dispm); 
+title('magnitude of SCC compressed virtual coils');
+colormap(sqrt(gray(256))); colorbar;
+
+figure, imshow3(angle(SCCim),[],dispm); 
+title('phase of SCC compressed virtual coils');
+colormap('default');
+colorbar;
+
+figure, imshow(sos(SCCim(:,:,ncc+1:end)),[]);
+colorbar;
+title('SCC Compression error from 32->5 channels')
+
+
+
+
+
+%% GCC - Geometric decomposition Coil Compression (with no alignment)
+% This code computes GCC compression matrices from calibration data. The
+% data is the transformed to the new compressed virtual coils basis. 
+
+
+gccmtx = calcGCCMtx(calib,dim,slwin);
+
+% compress the data
+GCCDATA = CC(DATA,gccmtx, dim);
+
+% compute coil image
+GCCim = ifft2c(GCCDATA);
+
+
+%%
+% The compressed virtual coil domain shows that the data can be represented
+% effectively by 5 out of 32 channels. The error is much lower than in SCC. 
+% However the data is not smooth
+% anymore in both magnitude and phase. 
+% 
+% Note that the colormap is non-linear to improve dynamic-range of
+% the visualization. 
+
+figure, imshow3(abs(GCCim),[],dispm); 
+title('magnitude unaligned compressed virtual coils');
+colormap(sqrt(gray(256))); colorbar;
+
+figure, imshow3(angle(GCCim),[],dispm); 
+title('phase unaligned compressed virtual coils');
+colormap('default');
+colorbar 
+
+figure, imshow(sos(GCCim(:,:,ncc+1:end)),[]);
+colorbar;
+title('GCC Compression error of 32->5 channels')
+
+%% Geometric decomposition Coil Compression (with alignment)
+% Here, we crop the compression matrices so they compress from 32->5 channels.
+% We then align the matrices so they smoothly vary. This does not change the 
+% subpspace of the data REPLACE_WITH_DASH_DASH only rotates the basis vectors. 
+%
+% Note that the colormap is non-linear to improve dynamic-range of
+% the visualization. 
+
+
+% crop and align matrices 
+gccmtx_aligned = alignCCMtx(gccmtx(:,1:ncc,:));
+
+% compress the data
+CCDATA_aligned = CC(DATA,gccmtx_aligned, dim);
+
+% compute coil image
+CCim_aligned = ifft2c(CCDATA_aligned);
+
+%%
+% The compressed virtual coil are now smooth in phase and magnitude
+
+figure, imshow3(abs(CCim_aligned),[],[1,ncc]); 
+title('magnitude aligned compressed virtual coils');
+colormap(sqrt(gray(256))); colorbar;
+
+figure, imshow3(angle(CCim_aligned),[],[1,ncc]); 
+title('phase aligned compressed virtual coils');
+colormap('default'); 
+colorbar
+
+
+
+
+##### SOURCE END #####
+--></body></html>
